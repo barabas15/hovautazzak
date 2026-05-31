@@ -26,14 +26,26 @@ export function FlightInfo({ flight, returnDate }: { flight: Flight | null; retu
       <p className="text-3xl md:text-4xl font-bold text-text-primary">
         {formatHuf(flight.priceHuf)}
       </p>
-      <a
-        href={flight.bookingUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-1 text-accent-purple hover:text-accent-cyan font-medium transition-colors"
-      >
-        Jegy foglalása →
-      </a>
+      <div className="flex flex-wrap gap-4">
+        <a
+          href={flight.bookingUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-accent-purple hover:text-accent-cyan font-medium transition-colors"
+        >
+          Oda-repülő foglalása →
+        </a>
+        {flight.returnSearchUrl && (
+          <a
+            href={flight.returnSearchUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-text-secondary hover:text-accent-cyan font-medium transition-colors"
+          >
+            Visszaút keresése →
+          </a>
+        )}
+      </div>
     </div>
   );
 }

@@ -96,14 +96,12 @@ export async function generateTrip(
   const hotelOffers =
     hotelRes.status === 'fulfilled' ? hotelRes.value : null
 
-  // Replace one-way booking URL with a round-trip Kiwi search link.
-  // Format: kiwi.com/en/?origin={city}-{country}&destination=...&outboundDate=...&inboundDate=...
   const flight = rawFlight
     ? {
         ...rawFlight,
-        bookingUrl: rawFlight.toCity
-          ? `https://www.kiwi.com/en/?origin=budapest-hungary&destination=${toCitySlug(rawFlight.toCity)}-${toCitySlug(country.name)}&outboundDate=${rawFlight.departureDate}&inboundDate=${checkOut}&adults=2&children=0&infants=0&returnFromDifferentAirport=false&returnToDifferentAirport=false`
-          : rawFlight.bookingUrl,
+        returnSearchUrl: rawFlight.toCity
+          ? `https://www.kiwi.com/en/?origin=${toCitySlug(rawFlight.toCity)}-${toCitySlug(country.name)}&destination=budapest-hungary&outboundDate=${checkOut}&adults=2&children=0&infants=0`
+          : undefined,
       }
     : null
 
