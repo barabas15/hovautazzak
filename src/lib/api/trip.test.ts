@@ -59,12 +59,11 @@ describe('generateTrip', () => {
     expect(trip.hotels?.browseUrl).toContain('checkout=2026-07-03')
     // total = flight + cheapest hotel
     expect(trip.totalPriceHuf).toBe(230000)
-    // bookingUrl is the original API deep link (outbound only)
-    expect(trip.flight?.bookingUrl).toBe(FLIGHT.bookingUrl)
-    // returnSearchUrl is built for the return leg
-    expect(trip.flight?.returnSearchUrl).toContain('origin=tokyo-japan')
-    expect(trip.flight?.returnSearchUrl).toContain('destination=budapest-hungary')
-    expect(trip.flight?.returnSearchUrl).toContain('outboundDate=2026-07-03')
+    // bookingUrl is a Kiwi round-trip search URL
+    expect(trip.flight?.bookingUrl).toContain('origin=budapest-hungary')
+    expect(trip.flight?.bookingUrl).toContain('destination=tokyo-japan')
+    expect(trip.flight?.bookingUrl).toContain('outboundDate=2026-06-30')
+    expect(trip.flight?.bookingUrl).toContain('inboundDate=2026-07-03')
   })
 
   it('resolves the destination IATA from the capital and searches with it', async () => {

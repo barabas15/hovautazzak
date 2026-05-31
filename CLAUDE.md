@@ -84,9 +84,11 @@ src/
   1. `places` query a főváros nevére (pl. `"Paris"`) → `legacyId`
   2. `onewayItineraries` query: BUD → legacyId, HUF valuta, 2 felnőtt
 - `passengers` objektumban **csak** `{ adults, children, infants }` — a bag mezők (`adultsHoldBags` stb.) `AppError`-t okoznak, ne add hozzá
-- A `bookingUrl` oda-vissza Kiwi keresési link: `kiwi.com/en/search/results/BUD/{IATA}/{dep}/{ret}`
 - `AppError` esetén (`onewayItineraries.__typename === 'AppError'`) hibát dob, nem `null`-t ad vissza
 - Ha nem talál járatot: `flight: null` a TripResult-ban
+- **`bookingUrl`** = Kiwi round-trip keresési URL: `kiwi.com/en/?origin=budapest-hungary&destination={city}-{country}&outboundDate={dep}&inboundDate={ret}&adults=2&...`
+- **IATA kód vs városnév:** a `places` query és a `bookingUrl` városnévvel működik, nem IATA kóddal
+- Kis repülőtereknél előfordulhat, hogy a Kiwi search "Nothing here yet"-et mutat — ez valódi hiány (nincs round-trip opció az adott útvonalon), nem URL hiba
 
 ### Szállás — Xotelo (kulcs nélkül)
 - `LOCATION_KEYS` map: ~60 európai főváros → Xotelo location key (TripAdvisor geo ID)
@@ -115,9 +117,18 @@ https://www.booking.com/searchresults.html?ss=<city>&checkin=<YYYY-MM-DD>&checko
 - Fallback: `name.common` (angol) ha nincs magyar fordítás
 - Magyar ABC sorrend (`localeCompare('hu')`)
 
-## `HotelOffer` típus
+## Típusok
 
 ```ts
+type Flight = {
+  fromCity: string; fromIata: string
+  toCity: string; toIata: string
+  departureDate: string       // ISO date
+  airline: string
+  priceHuf: number
+  bookingUrl: string          // Kiwi round-trip search URL
+}
+
 type HotelOffer = {
   name: string
   totalPriceHuf: number   // teljes ár az út hosszára

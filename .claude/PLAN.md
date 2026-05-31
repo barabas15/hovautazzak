@@ -90,6 +90,10 @@ backend     frontend  (párhuzamosan)
 
 - **Kiwi passengers**: csak `{ adults, children, infants }` — `adultsHoldBags` stb. `AppError`-t okoz
 - **Kiwi places keresés**: városnévvel kell (`"Paris"`), nem IATA kóddal (`"CDG"`)
+- **Kiwi bookingUrl**: round-trip search URL — `kiwi.com/en/?origin=budapest-hungary&destination={city}-{country}&outboundDate={dep}&inboundDate={ret}&adults=2`; kis repülőtereknél "Nothing here yet" = valódi hiány, nem URL hiba
+- **Kiwi URL slug**: városnév + ország (`paris-france`), IATA kód (`CDG`) nem működik az URL-ben
+- **Skyscanner**: captcha-t dob, nem használható deep link célra
+- **Google Flights**: fragment-alapú URL (`#flt=...`) nem működik server-side redirectnél
 - **Xotelo search** (névből): fizetős RapidAPI endpoint — ne próbáld kulcs nélkül
 - **`generateTrip` tesztelhetőség**: `leadDays` és `nights` 3-4. paraméterként injectable
 
