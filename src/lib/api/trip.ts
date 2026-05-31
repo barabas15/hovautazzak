@@ -13,15 +13,6 @@ function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-function toCitySlug(city: string): string {
-  return city
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-}
-
 export class TripError extends Error {
   constructor(
     message: string,
@@ -32,7 +23,6 @@ export class TripError extends Error {
   }
 }
 
-/** Pick a random country that has a resolvable destination airport. */
 function pickRandomWithIata(countries: CountryRecord[]): CountryRecord | null {
   const candidates = countries.filter((c) => resolveIata(c.capital))
   if (candidates.length === 0) return null
@@ -40,13 +30,6 @@ function pickRandomWithIata(countries: CountryRecord[]): CountryRecord | null {
   return candidates[idx]
 }
 
-/**
- * Generate a random (or country-specific) trip from Budapest.
- *
- * @param countryCode optional ISO alpha-2 code; when omitted a random
- *   country with a known airport is picked.
- * @param today injectable "now" for deterministic testing.
- */
 export async function generateTrip(
   countryCode?: string,
   today: Date = new Date(),
@@ -85,25 +68,16 @@ export async function generateTrip(
     nights ?? randomInt(4, 10),
   )
 
-  // Flights + hotels in parallel; neither failure aborts the whole trip.
-  const [flightRes, hotelRes] = await Promise.allSettled([
-    searchFlight(iata, checkIn, country.capital),
+  // Outbound, return and hotels searched in parallel; any failure yields null.
+  const [outboundRes, returnRes, hotelRes] = await Promise.allSettled([
+    searchFlight(iata, checkIn, country.capital, false),
+    searchFlight(iata, checkOut, country.capital, true),
     searchHotels(country.capital, checkIn, checkOut, country.code),
   ])
 
-  const rawFlight =
-    flightRes.status === 'fulfilled' ? flightRes.value : null
-  const hotelOffers =
-    hotelRes.status === 'fulfilled' ? hotelRes.value : null
-
-  const flight = rawFlight
-    ? {
-        ...rawFlight,
-        bookingUrl: rawFlight.toCity
-          ? `https://www.kiwi.com/en/search/results/budapest-hungary/${toCitySlug(rawFlight.toCity)}-${toCitySlug(country.name)}/${rawFlight.departureDate}/${checkOut}/?adults=2&children=0&infants=0`
-          : rawFlight.bookingUrl,
-      }
-    : null
+  const flight = outboundRes.status === 'fulfilled' ? outboundRes.value : null
+  const returnFlight = returnRes.status === 'fulfilled' ? returnRes.value : null
+  const hotelOffers = hotelRes.status === 'fulfilled' ? hotelRes.value : null
 
   const city = flight?.toCity || country.capital || country.name
   const browseUrl = buildBookingUrl(city, checkIn, checkOut)
@@ -113,7 +87,9 @@ export async function generateTrip(
     : null
 
   const totalPriceHuf =
-    (flight?.priceHuf ?? 0) + (hotels?.cheapest.totalPriceHuf ?? 0)
+    (flight?.priceHuf ?? 0) +
+    (returnFlight?.priceHuf ?? 0) +
+    (hotels?.cheapest.totalPriceHuf ?? 0)
 
   return {
     country: {
@@ -122,8 +98,8 @@ export async function generateTrip(
       flag: country.flag || country.flagUrl,
     },
     flight,
+    returnFlight,
     hotels,
-    // Extra (non-contract) fields the UI may use; harmless to typed consumers.
     browseUrl,
     checkIn,
     checkOut,

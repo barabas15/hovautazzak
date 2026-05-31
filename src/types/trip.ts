@@ -20,7 +20,7 @@ export type Flight = {
   departureDate: string; // ISO date, e.g. "2026-07-12"
   airline: string;
   priceHuf: number;
-  bookingUrl: string; // Kiwi round-trip search URL
+  bookingUrl: string; // Kiwi one-way booking deep link
 };
 
 export type HotelOffer = {
@@ -39,8 +39,10 @@ export type Hotels = {
 
 export type TripResult = {
   country: Country;
-  /** null when no flight could be found for the destination. */
+  /** null when no outbound flight could be found. */
   flight: Flight | null;
+  /** null when no return flight could be found. */
+  returnFlight?: Flight | null;
   /** null when no hotel offers could be found. */
   hotels: Hotels | null;
 };

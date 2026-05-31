@@ -16,7 +16,7 @@ async function graphqlRequest(query: string, variables: unknown, featureName?: s
   return data.data
 }
 
-async function findDestinationId(term: string): Promise<string | null> {
+async function findLocationId(term: string): Promise<string | null> {
   const query = `
     query UmbrellaPlacesQuery($search: PlacesSearchInput, $first: Int!) {
       places(search: $search, first: $first) {
@@ -41,7 +41,7 @@ async function findDestinationId(term: string): Promise<string | null> {
 }
 
 interface SegmentNode {
-  source?: { station?: { code?: string; name?: string }; localTime?: string }
+  source?: { station?: { code?: string; name?: string; city?: { name?: string } }; localTime?: string }
   destination?: { station?: { code?: string; name?: string; city?: { name?: string } }; localTime?: string }
   carrier?: { code?: string; name?: string }
 }
@@ -54,7 +54,7 @@ interface ItineraryNode {
   bookingOptions?: { edges?: { node?: { bookingUrl?: string } }[] }
 }
 
-async function searchItineraries(destId: string, date: string): Promise<ItineraryNode[]> {
+async function searchItineraries(originId: string, destId: string, date: string): Promise<ItineraryNode[]> {
   const query = `
     query SearchOneWayItinerariesQuery($search: SearchOnewayInput, $filter: ItinerariesFilterInput, $options: ItinerariesOptionsInput) {
       onewayItineraries(search: $search, filter: $filter, options: $options) {
@@ -65,7 +65,7 @@ async function searchItineraries(destId: string, date: string): Promise<Itinerar
               sector {
                 sectorSegments {
                   segment {
-                    source { station { code name } localTime }
+                    source { station { code name city { name } } localTime }
                     destination { station { code name city { name } } localTime }
                     carrier { code name }
                   }
@@ -81,7 +81,7 @@ async function searchItineraries(destId: string, date: string): Promise<Itinerar
   const variables = {
     search: {
       itinerary: {
-        source: { ids: [BUDAPEST_ID] },
+        source: { ids: [originId] },
         destination: { ids: [destId] },
         outboundDepartureDate: {
           start: `${date}T00:00:00`,
@@ -113,7 +113,7 @@ async function searchItineraries(destId: string, date: string): Promise<Itinerar
   return data?.onewayItineraries?.itineraries ?? []
 }
 
-function parseItinerary(it: ItineraryNode, fallbackIata: string): Flight | null {
+function parseItinerary(it: ItineraryNode, fallbackDestIata: string): Flight | null {
   const segments = (it.sector?.sectorSegments ?? []).map((s) => s.segment)
   if (!segments.length) return null
   const first = segments[0]
@@ -121,23 +121,39 @@ function parseItinerary(it: ItineraryNode, fallbackIata: string): Flight | null 
   const price = Math.round(parseFloat(it.price?.amount ?? '0'))
   let bookingUrl = it.bookingOptions?.edges?.[0]?.node?.bookingUrl ?? ''
   if (bookingUrl.startsWith('/')) bookingUrl = `https://www.kiwi.com${bookingUrl}`
-  const toIata = last.destination?.station?.code ?? fallbackIata
+  const toIata = last.destination?.station?.code ?? fallbackDestIata
   return {
-    fromCity: 'Budapest',
-    fromIata: first.source?.station?.code ?? 'BUD',
+    fromCity: first.source?.station?.city?.name ?? first.source?.station?.name ?? '',
+    fromIata: first.source?.station?.code ?? '',
     toCity: last.destination?.station?.city?.name ?? last.destination?.station?.name ?? '',
     toIata,
     departureDate: (first.source?.localTime ?? '').split('T')[0] || '',
     airline: last.carrier?.name ?? last.carrier?.code ?? '',
     priceHuf: price,
-    bookingUrl: bookingUrl || `https://www.kiwi.com/en/search/results/BUD/${toIata}`,
+    bookingUrl: bookingUrl || `https://www.kiwi.com/en/search/results/budapest/${toIata}`,
   }
 }
 
-export async function searchFlight(destinationIata: string, date: string, cityName?: string): Promise<Flight | null> {
-  const destId = await findDestinationId(cityName ?? destinationIata)
-  if (!destId) return null
-  const itineraries = await searchItineraries(destId, date)
+/**
+ * Search for a one-way flight.
+ * @param destIata  IATA code of the destination airport (used as fallback in booking URL)
+ * @param date      ISO departure date (YYYY-MM-DD)
+ * @param cityName  City name for the Kiwi places lookup (more reliable than IATA)
+ * @param isReturn  When true, searches dest→BUD instead of BUD→dest
+ */
+export async function searchFlight(
+  destIata: string,
+  date: string,
+  cityName?: string,
+  isReturn = false,
+): Promise<Flight | null> {
+  const cityId = await findLocationId(cityName ?? destIata)
+  if (!cityId) return null
+
+  const originId = isReturn ? cityId : BUDAPEST_ID
+  const destinationId = isReturn ? BUDAPEST_ID : cityId
+
+  const itineraries = await searchItineraries(originId, destinationId, date)
   if (!itineraries.length) return null
-  return parseItinerary(itineraries[0], destinationIata)
+  return parseItinerary(itineraries[0], isReturn ? 'BUD' : destIata)
 }

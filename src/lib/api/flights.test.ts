@@ -100,6 +100,6 @@ describe('searchFlight', () => {
     }
     mockFetch([PLACES_RESPONSE, noUrl])
     const flight = await searchFlight('NRT', '2026-07-12')
-    expect(flight?.bookingUrl).toContain('kiwi.com/en/search/results/BUD/NRT')
+    expect(flight?.bookingUrl).toContain('kiwi.com/en/search/results/budapest/NRT')
   })
 })

@@ -1,11 +1,16 @@
 import type { Flight } from "@/types/trip";
 import { formatHuf, formatDate } from "@/lib/utils";
 
-export function FlightInfo({ flight, returnDate }: { flight: Flight | null; returnDate?: string }) {
+type Props = {
+  flight: Flight | null;
+  emptyMessage?: string;
+};
+
+export function FlightInfo({ flight, emptyMessage }: Props) {
   if (!flight) {
     return (
       <div className="bg-bg-card border border-border-default rounded-2xl p-6 md:p-8 text-text-secondary">
-        Erre az úti célra most nem találtunk járatot. Próbálj másik országot!
+        {emptyMessage ?? "Erre az úti célra most nem találtunk járatot. Próbálj másik országot!"}
       </div>
     );
   }
@@ -19,9 +24,7 @@ export function FlightInfo({ flight, returnDate }: { flight: Flight | null; retu
         <span className="text-accent-cyan font-mono">({flight.toIata})</span>
       </p>
       <p className="text-sm text-text-secondary">
-        Indulás: {formatDate(flight.departureDate)}
-        {returnDate && <> · Visszaút: {formatDate(returnDate)}</>}
-        {" · "}{flight.airline}
+        Indulás: {formatDate(flight.departureDate)} · {flight.airline}
       </p>
       <p className="text-3xl md:text-4xl font-bold text-text-primary">
         {formatHuf(flight.priceHuf)}

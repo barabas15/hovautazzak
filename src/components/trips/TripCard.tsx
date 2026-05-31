@@ -10,19 +10,15 @@ import { BookingLink } from "@/components/trips/BookingLink";
 import { PriceSummary } from "@/components/trips/PriceSummary";
 import { SaveTripButton } from "@/components/trips/SaveTripButton";
 
-/** Add `nights` days to an ISO date, returning a YYYY-MM-DD string. */
-function addNights(iso: string, nights: number): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  d.setDate(d.getDate() + nights);
-  return d.toISOString().slice(0, 10);
-}
-
 export function TripCard({ trip }: { trip: TripResult }) {
   const router = useRouter();
-  const { country, flight, hotels } = trip;
+  const { country, flight, returnFlight, hotels } = trip;
   const nights = hotels?.nights ?? 3;
-  const checkOut = flight ? addNights(flight.departureDate, nights) : "";
+
+  const checkIn = flight?.departureDate ?? "";
+  const checkOut = returnFlight?.departureDate ?? "";
+
+  const totalFlightPriceHuf = (flight?.priceHuf ?? 0) + (returnFlight?.priceHuf ?? 0);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-6">
@@ -46,8 +42,17 @@ export function TripCard({ trip }: { trip: TripResult }) {
         </span>
       </div>
 
-      {/* Flight */}
-      <FlightInfo flight={flight} returnDate={checkOut} />
+      {/* Outbound flight */}
+      <section>
+        <h2 className="text-xl font-semibold text-text-primary mb-3">Odaút</h2>
+        <FlightInfo flight={flight} />
+      </section>
+
+      {/* Return flight */}
+      <section>
+        <h2 className="text-xl font-semibold text-text-primary mb-3">Visszaút</h2>
+        <FlightInfo flight={returnFlight ?? null} emptyMessage="Erre az úti célra nem találtunk visszaúti járatot." />
+      </section>
 
       {/* Hotels */}
       {hotels && (
@@ -59,7 +64,7 @@ export function TripCard({ trip }: { trip: TripResult }) {
           </div>
           <BookingLink
             city={flight?.toCity ?? country.name}
-            checkIn={flight?.departureDate ?? ""}
+            checkIn={checkIn}
             checkOut={checkOut}
             browseUrl={hotels.browseUrl}
           />
@@ -67,9 +72,9 @@ export function TripCard({ trip }: { trip: TripResult }) {
       )}
 
       {/* Price summary */}
-      {flight && hotels && (
+      {(flight || returnFlight) && hotels && (
         <PriceSummary
-          flightPriceHuf={flight.priceHuf}
+          flightPriceHuf={totalFlightPriceHuf}
           hotelPriceHuf={hotels.cheapest.totalPriceHuf}
           nights={nights}
         />
