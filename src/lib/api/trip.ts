@@ -100,7 +100,7 @@ export async function generateTrip(
     ? {
         ...rawFlight,
         bookingUrl: rawFlight.toCity
-          ? `https://www.kiwi.com/en/?origin=budapest-hungary&destination=${toCitySlug(rawFlight.toCity)}-${toCitySlug(country.name)}&outboundDate=${rawFlight.departureDate}&inboundDate=${checkOut}&adults=2&children=0&infants=0&returnFromDifferentAirport=false&returnToDifferentAirport=false`
+          ? `https://www.kiwi.com/en/search/results/budapest-hungary/${toCitySlug(rawFlight.toCity)}-${toCitySlug(country.name)}/${rawFlight.departureDate}/${checkOut}/?adults=2&children=0&infants=0`
           : rawFlight.bookingUrl,
       }
     : null

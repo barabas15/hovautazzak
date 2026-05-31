@@ -60,10 +60,7 @@ describe('generateTrip', () => {
     // total = flight + cheapest hotel
     expect(trip.totalPriceHuf).toBe(230000)
     // bookingUrl is a Kiwi round-trip search URL
-    expect(trip.flight?.bookingUrl).toContain('origin=budapest-hungary')
-    expect(trip.flight?.bookingUrl).toContain('destination=tokyo-japan')
-    expect(trip.flight?.bookingUrl).toContain('outboundDate=2026-06-30')
-    expect(trip.flight?.bookingUrl).toContain('inboundDate=2026-07-03')
+    expect(trip.flight?.bookingUrl).toContain('/search/results/budapest-hungary/tokyo-japan/2026-06-30/2026-07-03/')
   })
 
   it('resolves the destination IATA from the capital and searches with it', async () => {
