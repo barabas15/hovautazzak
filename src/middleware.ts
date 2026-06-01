@@ -32,22 +32,11 @@ export function middleware(req: NextRequest) {
     )
   }
 
-  if (pathname === '/saved' || pathname.startsWith('/saved/')) {
-    if (!hasSession) {
-      const url = req.nextUrl.clone()
-      url.pathname = '/'
-      url.searchParams.set('login', 'required')
-      return NextResponse.redirect(url)
-    }
-  }
-
   return NextResponse.next()
 }
 
 export const config = {
   matcher: [
-    '/saved',
-    '/saved/:path*',
     '/api/saved-trips',
     '/api/saved-trips/:path*',
     '/api/trips',

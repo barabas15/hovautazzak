@@ -14,7 +14,13 @@ export function SaveTripButton({ trip }: { trip: TripResult }) {
   async function persist() {
     setState("saving");
     try {
-      const current = user ?? (await signInWithGoogle()).user;
+      let current = user;
+      if (!current) {
+        const result = await signInWithGoogle();
+        // signInWithRedirect returns void and navigates away — bail out silently
+        if (!result) { setState("idle"); return; }
+        current = result.user;
+      }
       const token = await current.getIdToken();
       const res = await fetch("/api/saved-trips", {
         method: "POST",
