@@ -9,6 +9,7 @@ const provider = new GoogleAuthProvider();
 
 /** Triggers Google sign-in. Returns a promise so callers can chain (e.g. save after login). */
 export async function signInWithGoogle() {
+  if (!auth) throw new Error('Firebase nincs konfigurálva.');
   return signInWithPopup(auth, provider);
 }
 

@@ -71,7 +71,7 @@ export function Navbar() {
               <Avatar photoURL={user.photoURL} name={user.displayName} />
               <button
                 type="button"
-                onClick={() => signOut(auth)}
+                onClick={() => auth && signOut(auth)}
                 className="text-sm text-text-secondary hover:text-text-primary transition-colors"
               >
                 Kilépés

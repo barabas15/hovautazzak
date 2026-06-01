@@ -1,5 +1,5 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
+import { getAuth, type Auth } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -10,8 +10,11 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-const app: FirebaseApp =
-  getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+// NEXT_PUBLIC_ vars are inlined at build time. Guard against missing values
+// during prerender so the build doesn't crash when env vars aren't set yet.
+const app: FirebaseApp | null = firebaseConfig.apiKey
+  ? getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+  : null
 
-export const auth = getAuth(app)
+export const auth: Auth | null = app ? getAuth(app) : null
 export default app
