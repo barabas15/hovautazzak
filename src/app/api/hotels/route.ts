@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { searchHotels } from '@/lib/api/hotels'
 import { addDays, DEFAULT_NIGHTS } from '@/lib/trip-helpers'
 
+export const maxDuration = 15
+
 export async function GET(req: NextRequest) {
   const params = req.nextUrl.searchParams
   const cityName = params.get('cityName') ?? params.get('cityCode')

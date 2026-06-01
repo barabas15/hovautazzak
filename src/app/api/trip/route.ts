@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateTrip, TripError } from '@/lib/api/trip'
 
+export const maxDuration = 15
+
 export const dynamic = 'force-dynamic'
 
 async function handle(countryCode?: string) {

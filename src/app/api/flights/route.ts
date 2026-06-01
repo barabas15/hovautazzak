@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { searchFlight } from '@/lib/api/flights'
 
+export const maxDuration = 15
+
 export async function GET(req: NextRequest) {
   const to = req.nextUrl.searchParams.get('to')
   const date = req.nextUrl.searchParams.get('date')
