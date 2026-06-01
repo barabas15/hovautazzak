@@ -25,7 +25,7 @@ function SavedTripCard({
   trip: SavedTrip;
   onDelete: (id: string) => void;
 }) {
-  const { country, flight, totalPriceHuf } = trip;
+  const { country, flight, hotels, totalPriceHuf } = trip;
 
   function handleDelete() {
     if (window.confirm("Biztosan törlöd ezt a mentett utazást?")) {
@@ -34,7 +34,7 @@ function SavedTripCard({
   }
 
   return (
-    <div className="relative bg-bg-card border border-border-default rounded-2xl p-6 hover:shadow-xl hover:shadow-violet-900/20 transition-shadow">
+    <div className="relative bg-bg-card border border-border-default rounded-2xl p-6 hover:shadow-xl hover:shadow-violet-900/20 transition-shadow flex flex-col gap-3">
       <div className="flex items-start justify-between">
         <span className="inline-flex items-center gap-2 text-xl font-semibold text-text-primary">
           <FlagGlyph flag={country.flag} />
@@ -51,19 +51,44 @@ function SavedTripCard({
       </div>
 
       {flight && (
-        <>
-          <p className="text-sm text-text-secondary mt-2">
+        <div>
+          <p className="text-sm text-text-secondary">
             {flight.fromIata} → {flight.toCity} ({flight.toIata})
           </p>
           <p className="text-sm text-text-muted">
             {formatDate(flight.departureDate)}
           </p>
-        </>
+        </div>
       )}
 
-      <p className="text-lg font-bold text-text-primary mt-3">
+      <p className="text-lg font-bold text-text-primary">
         {formatHuf(totalPriceHuf)}
       </p>
+
+      {(flight?.bookingUrl || hotels?.browseUrl) && (
+        <div className="flex gap-2 flex-wrap pt-1">
+          {flight?.bookingUrl && (
+            <a
+              href={flight.bookingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-medium bg-violet-600/20 hover:bg-violet-600/40 text-violet-300 border border-violet-500/30 rounded-full px-4 py-1.5 transition-colors"
+            >
+              ✈ Repjegy
+            </a>
+          )}
+          {hotels?.browseUrl && (
+            <a
+              href={hotels.browseUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-medium bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/30 rounded-full px-4 py-1.5 transition-colors"
+            >
+              🏨 Szállások
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 }

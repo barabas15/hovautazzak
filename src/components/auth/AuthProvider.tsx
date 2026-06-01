@@ -19,9 +19,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       setLoading(false);
+
+      if (u) {
+        try {
+          const idToken = await u.getIdToken();
+          await fetch("/api/auth/session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken }),
+          });
+        } catch {
+          // non-fatal: API routes still work with Bearer token
+        }
+      } else {
+        fetch("/api/auth/session", { method: "DELETE" }).catch(() => {});
+      }
     });
     return () => unsubscribe();
   }, []);
