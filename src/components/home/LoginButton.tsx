@@ -1,15 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { signInWithPopup, signInWithRedirect, GoogleAuthProvider } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 
 const provider = new GoogleAuthProvider();
 
-/** Triggers Google sign-in. Returns a promise so callers can chain (e.g. save after login). */
+function isInAppBrowser(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /FBAN|FBAV|Instagram|Messenger|LinkedInApp|MicroMessenger|Twitter|Snapchat/i.test(
+    navigator.userAgent,
+  );
+}
+
+/** Triggers Google sign-in. In-app browsers (Messenger, Instagram etc.) use redirect flow. */
 export async function signInWithGoogle() {
-  if (!auth) throw new Error('Firebase nincs konfigurálva.');
+  if (!auth) throw new Error("Firebase nincs konfigurálva.");
+  if (isInAppBrowser()) {
+    return signInWithRedirect(auth, provider);
+  }
   return signInWithPopup(auth, provider);
 }
 
